@@ -193,6 +193,31 @@ def test_additional_search_options() -> None:
 
 
 @pytest.mark.requires("azure.search.documents")
+def test_additional_search_options_retry_policy() -> None:
+    from azure.core.pipeline.policies import RetryPolicy
+    from azure.search.documents.indexes import SearchIndexClient
+
+    def mock_create_index() -> None:
+        pytest.fail("Should not create index in this test")
+
+    with patch.multiple(
+        SearchIndexClient, get_index=mock_default_index, create_index=mock_create_index
+    ):
+        vector_store = create_vector_store(
+            additional_search_client_options={
+                "retry_policy": RetryPolicy(
+                    total_retries=3,
+                    backoff_factor=0.5,
+                    timeout=5,
+                ),
+            }
+        )
+        assert vector_store.client is not None
+
+        list(vector_store.client.search())
+
+
+@pytest.mark.requires("azure.search.documents")
 def test_ids_used_correctly() -> None:
     """Check whether vector store uses the document ids when provided with them."""
     from azure.search.documents import SearchClient
