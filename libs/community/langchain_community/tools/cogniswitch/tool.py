@@ -173,7 +173,6 @@ class CogniswitchKnowledgeStatus(BaseTool):
                 source_data.pop("docEntryId")
             return source_data
         else:
-            # error_message = response.json()["message"]
             return {
                 "message": response.status_code,
             }
