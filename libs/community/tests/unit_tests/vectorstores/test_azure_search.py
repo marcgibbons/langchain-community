@@ -194,6 +194,11 @@ def test_additional_search_options() -> None:
 
 @pytest.mark.requires("azure.search.documents")
 def test_additional_search_options_retry_policy() -> None:
+    """
+    Reproduces bug captured in:
+    https://github.com/langchain-ai/langchain-community/issues/76
+    """
+    from azure.core.exceptions import HttpResponseError
     from azure.core.pipeline.policies import RetryPolicy
     from azure.search.documents.indexes import SearchIndexClient
 
@@ -214,7 +219,10 @@ def test_additional_search_options_retry_policy() -> None:
         )
         assert vector_store.client is not None
 
-        list(vector_store.client.search())
+        # Bug previously raised an:
+        #  AttributeError: 'coroutine' object has no attribute 'http_response'
+        with pytest.raises(HttpResponseError):
+            list(vector_store.client.search())
 
 
 @pytest.mark.requires("azure.search.documents")
