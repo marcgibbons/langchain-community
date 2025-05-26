@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 from unittest.mock import patch
 
 import pytest
+from pytest_socket import SocketBlockedError
 
 from langchain_community.vectorstores.azuresearch import AzureSearch
 from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
@@ -220,8 +221,9 @@ def test_additional_search_options_retry_policy() -> None:
         assert vector_store.client is not None
 
         # Bug previously raised an:
-        #  AttributeError: 'coroutine' object has no attribute 'http_response'
-        with pytest.raises(HttpResponseError):
+        #  AttributeError: 'coroutine' object has no attribute 'http_response'.
+        # Expect a network connection to be made (and blocked).
+        with pytest.raises((HttpResponseError, SocketBlockedError)):
             list(vector_store.client.search())
 
 
